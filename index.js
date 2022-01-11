@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Web3 = require('web3');
-const RPC = process.env.RPC || "http://10.10.0.3:8545";
+const RPC = process.env.RPC || "http://localhost:7545";
 console.log(`Conectado a geth RPC @ ${RPC}`);
 const web3 = new Web3(new Web3.providers.HttpProvider(RPC))
 
@@ -14,24 +14,26 @@ var PORT = process.env.PORT || 3000;
 // RUTAS
 // =============================================================================
 var router = express.Router();              // Instancia de Express router
-const processTxs = function(txs, latest = false) {
+
+const processTxs = async function(txs, latest = false) {
   let transactions = [];
   if(txs.length > 0){
-    await Promise.all(txs.forEach(tx => {
+    txs.forEach(async tx => {
       if(latest){
         if(transactions.length < 10){
-	        var t = web3.eth.getTransaction(tx);
+	        var t = await web3.eth.getTransaction(tx);
           transactions.push(t);
         }
       }else{
-        transactions.push(web3.eth.getTransaction(tx));
+        transactions.push(await web3.eth.getTransaction(tx));
       }
       return transactions;
-    }));
+    });
   }else{
     return transactions
   }
 }
+
 // GET http://localhost:8080/api/blocks
 router.get('/latest', function(req, res) {
     const n = 10;
@@ -46,7 +48,7 @@ router.get('/latest', function(req, res) {
           const number = block.number;
           const hash = block.hash;
           const time = block.timestamp;
-          txs = processTxs(block.transactions, true)
+          txs = await processTxs(block.transactions, true)
           blocks.push({
             number,
             hash,
@@ -59,13 +61,14 @@ router.get('/latest', function(req, res) {
         });
       }
       console.log(txs);
-      res.json({ blocks, txs });
+      res.json({ txs });
     });
     
 });
 
-router.get('/transactions', function (req,res) {
-  res.json();
+router.get('/transaction/:hash', function (req,res) {
+  const t = web3.eth.getTransaction(req.params.hash);
+  res.json(t);
 });
 
 // more routes for our API will happen here
