@@ -30,14 +30,15 @@ const processTxs = function(txs, latest = false) {
 // GET http://localhost:8080/api/blocks
 router.get('/latest', function(req, res) {
     const n = 10;
-    web3.eth.getBlockNumber(function(error, result){ 
+    let blocks = [];
+    let txs = [];
+    web3.eth.getBlockNumber(async function(error, result){ 
       if (!error){
         console.log("block number => ", result)
         var latestBlock = result;
-        let blocks = [];
-        let txs = [];
         for (var i = 0; i < n; i++) {
-          var block = web3.eth.getBlock(latestBlock - i);
+          var block = await web3.eth.getBlock(latestBlock - i);
+          console.log(block);
           // Block data
           const number = block.number;
           const hash = block.hash;
