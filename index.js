@@ -2,14 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Web3 = require('web3');
 const RPC = process.env.RPC || "http://10.10.0.3:8545";
-let web3 = new Web3(new Web3.providers.HttpProvider(RPC))
-
-if (typeof web3 !== 'undefined') {
-  web3 = new Web3(web3.currentProvider);
-} else {
-  console.log(`Conectando a geth RPC @ ${RPC}`);
-  web3 = new Web3(new Web3.providers.HttpProvider(`${RPC}`));
-}
+console.log(`Conectado a geth RPC @ ${RPC}`);
+const web3 = new Web3(new Web3.providers.HttpProvider(RPC))
 
 const app = express();
 
@@ -57,7 +51,7 @@ router.get('/latest', function(req, res) {
         } 
       }else{
         return res.status(500).json({
-          message: "Ocurrió un error al obtener el ultimo bloque;"
+          message: "Error al obtener el ultimo bloque"
         });
       }
       res.json({ blocks, txs });
