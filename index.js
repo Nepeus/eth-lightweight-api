@@ -14,36 +14,39 @@ var PORT = process.env.PORT || 3000;
 // RUTAS
 // =============================================================================
 var router = express.Router();              // Instancia de Express router
-const processTxs = function(txs, latest = false) {
+const processTxs = async function(txs, latest = false) {
   let transactions = [];
-  txs.forEach(tx => {
-    if(latest){
-      if(transactions.length < 10){
-        transactions.push(web3.eth.getTransaction(tx));
+  if(txs.length > 0){
+    txs.forEach(async tx => {
+      if(latest){
+        if(transactions.length < 10){
+	  var t = await web3.eth.getTransaction(tx);
+          transactions.push(t);
+        }
+      }else{
+        transactions.push(await web3.eth.getTransaction(tx));
       }
-    }else{
-      transactions.push(web3.eth.getTransaction(tx));
-    }
-    return transactions;
-  });
+      return transactions;
+    });
+  }else{
+    return transactions
+  }
 }
 // GET http://localhost:8080/api/blocks
 router.get('/latest', function(req, res) {
     const n = 10;
     let blocks = [];
     let txs = [];
-    web3.eth.getBlockNumber(async function(error, result){ 
+    web3.eth.getBlockNumber(async function(error, result){
       if (!error){
-        console.log("block number => ", result)
         var latestBlock = result;
         for (var i = 0; i < n; i++) {
           var block = await web3.eth.getBlock(latestBlock - i);
-          console.log(block);
           // Block data
           const number = block.number;
           const hash = block.hash;
           const time = block.timestamp;
-          txs = processTxs(block.transactions, true)
+          txs = await processTxs(block.transactions, true)
           blocks.push({
             number,
             hash,
@@ -55,6 +58,7 @@ router.get('/latest', function(req, res) {
           message: "Error al obtener el ultimo bloque"
         });
       }
+      console.log(txs);
       res.json({ blocks, txs });
     });
     
