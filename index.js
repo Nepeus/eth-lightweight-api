@@ -14,7 +14,7 @@ var PORT = process.env.PORT || 3000;
 // RUTAS
 // =============================================================================
 var router = express.Router();              // Instancia de Express router
-const processTxs = async function(txs, latest = false) {
+const processTxs = function(txs, latest = false) {
   let transactions = [];
   if(txs.length > 0){
     txs.forEach(async tx => {
@@ -46,7 +46,7 @@ router.get('/latest', function(req, res) {
           const number = block.number;
           const hash = block.hash;
           const time = block.timestamp;
-          txs = await processTxs(block.transactions, true)
+          txs = processTxs(block.transactions, true)
           blocks.push({
             number,
             hash,
