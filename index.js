@@ -17,17 +17,17 @@ var router = express.Router();              // Instancia de Express router
 const processTxs = function(txs, latest = false) {
   let transactions = [];
   if(txs.length > 0){
-    txs.forEach(async tx => {
+    await Promise.all(txs.forEach(tx => {
       if(latest){
         if(transactions.length < 10){
-	  var t = await web3.eth.getTransaction(tx);
+	        var t = web3.eth.getTransaction(tx);
           transactions.push(t);
         }
       }else{
-        transactions.push(await web3.eth.getTransaction(tx));
+        transactions.push(web3.eth.getTransaction(tx));
       }
       return transactions;
-    });
+    }));
   }else{
     return transactions
   }
