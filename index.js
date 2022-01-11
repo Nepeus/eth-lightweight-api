@@ -1,7 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NODEURL || "http://10.10.0.3:8545"))
+const RPC = process.env.RPC || "http://10.10.0.3:8545";
+let web3 = new Web3(new Web3.providers.HttpProvider(RPC))
+
+if (typeof web3 !== 'undefined') {
+  web3 = new Web3(web3.currentProvider);
+} else {
+  console.log(`Conectando a geth RPC @ ${RPC}`);
+  web3 = new Web3(new Web3.providers.HttpProvider(`${RPC}`));
+}
 
 const app = express();
 
@@ -12,17 +20,33 @@ var PORT = process.env.PORT || 3000;
 // RUTAS
 // =============================================================================
 var router = express.Router();              // Instancia de Express router
-
+const processTxs = function(txs, latest = false) {
+  let transactions = [];
+  txs.forEach(tx => {
+    if(latest){
+      if(transactions.length < 10){
+        transactions.push(web3.eth.getTransaction(tx));
+      }
+    }else{
+      transactions.push(web3.eth.getTransaction(tx));
+    }
+    return transactions;
+  });
+}
 // GET http://localhost:8080/api/blocks
-router.get('/blocks', function(req, res) {
+router.get('/latest', function(req, res) {
+    const n = 10;
     var latestBlock = web3.eth.blockNumber;
-    const result = [];
-    for (var i = 0; i < 10; i++) {
+    let blocks = [];
+    let txs = [];
+    for (var i = 0; i < n; i++) {
       var block = web3.eth.getBlock(latestBlock - i);
-      var number = block.number;
-      var hash = block.hash;
-      var time = block.timestamp;
-      result.push({
+      // Block data
+      const number = block.number;
+      const hash = block.hash;
+      const time = block.timestamp;
+      txs = processTxs(block.transactions, true)
+      blocks.push({
         number,
         hash,
         time
@@ -31,7 +55,11 @@ router.get('/blocks', function(req, res) {
     /*web3.eth.getBlockNumber().then((result) => {
         console.log(result)
     });*/
-    res.json({ result });
+    res.json({ blocks, txs });
+});
+
+router.get('/transactions', function (req,res) {
+  res.json();
 });
 
 // more routes for our API will happen here
