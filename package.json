@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "dev-lan": "RPC=http://192.168.1.39:7545 nodemon index.js"
   },
   "author": "Luis Morales",
   "license": "ISC",
