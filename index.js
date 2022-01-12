@@ -89,7 +89,7 @@ router.get('/transfer/:from/:to/:amount', function(req, res){
   };
   web3.eth.getBalance(transactionObject.from, function (err, balance){
     if(!err){
-      if(balance > transactionObject.value){
+      if(parseInt(balance) >= parseInt(transactionObject.value)){
         web3.eth.sendTransaction(transactionObject, function (error, tx){
           if(!error){
             res.json({
