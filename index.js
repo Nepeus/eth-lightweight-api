@@ -1,12 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Web3 = require('web3');
+const cors = require('cors');
+
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 const RPC = process.env.RPC || "http://localhost:7545";
 console.log(`Conectado a geth RPC @ ${RPC}`);
 const web3 = new Web3(new Web3.providers.HttpProvider(RPC))
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -38,7 +42,7 @@ router.get('/accounts', async function(req, res){
     if(!error){
       res.json({
         status: 'success',
-        res
+        result
       });
     }else{
       res.json({
@@ -53,8 +57,8 @@ router.get('/transfer/:from/:to/:amount', function(req, res){
   const transactionObject = {
     from: req.params.from,
     to: req.params.to,
-    value: 100000000000
-  }
+    value: req.params.amount,
+  };
   web3.eth.sendTransaction(transactionObject, function (error, result){
     if(!error){
       res.json({
